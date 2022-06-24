@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"timtubeWebAdmin/config"
 	"timtubeWebAdmin/controller/user/user"
+	video_data "timtubeWebAdmin/controller/video/video-data"
 	"timtubeWebAdmin/controller/video/video-video"
 )
 
 func Home(app *config.Env) http.Handler {
 	mux := chi.NewMux()
 	mux.Mount("/video", video_video.Home(app))
+	mux.Mount("/video-data", video_data.Home(app))
 	mux.Mount("/user", user.Home(app))
 	return mux
 }

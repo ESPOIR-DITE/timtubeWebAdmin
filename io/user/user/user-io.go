@@ -45,7 +45,6 @@ func ReadUser(id string) (domain.User, error) {
 	}
 	return entity, nil
 }
-
 func DeleteUser(id string) bool {
 	var entity bool
 	resp, _ := api.Rest().Get(userURL + "delete/" + id)
@@ -59,7 +58,6 @@ func DeleteUser(id string) bool {
 	return entity
 }
 func ReadUsers() ([]domain.User, error) {
-	//fmt.Println("we are sending the requests to the following backend: ",api.BASE_URL)
 	entity := []domain.User{}
 	resp, _ := api.Rest().Get(userURL + "getAll")
 	if resp.IsError() {
@@ -70,5 +68,52 @@ func ReadUsers() ([]domain.User, error) {
 		return entity, errors.New(resp.Status())
 	}
 	return entity, nil
-
+}
+func ReadSuperAdminUsers() ([]domain.User, error) {
+	entity := []domain.User{}
+	resp, _ := api.Rest().Get(userURL + "getAllSuperAdmins")
+	if resp.IsError() {
+		return entity, errors.New(resp.Status())
+	}
+	err := api.JSON.Unmarshal(resp.Body(), &entity)
+	if err != nil {
+		return entity, errors.New(resp.Status())
+	}
+	return entity, nil
+}
+func ReadAgentUsers() ([]domain.User, error) {
+	entity := []domain.User{}
+	resp, _ := api.Rest().Get(userURL + "getAllAgents")
+	if resp.IsError() {
+		return entity, errors.New(resp.Status())
+	}
+	err := api.JSON.Unmarshal(resp.Body(), &entity)
+	if err != nil {
+		return entity, errors.New(resp.Status())
+	}
+	return entity, nil
+}
+func ReadAdminUsers() ([]domain.User, error) {
+	entity := []domain.User{}
+	resp, _ := api.Rest().Get(userURL + "getAllAdmins")
+	if resp.IsError() {
+		return entity, errors.New(resp.Status())
+	}
+	err := api.JSON.Unmarshal(resp.Body(), &entity)
+	if err != nil {
+		return entity, errors.New(resp.Status())
+	}
+	return entity, nil
+}
+func ReadAllUsers() ([]domain.User, error) {
+	entity := []domain.User{}
+	resp, _ := api.Rest().Get(userURL + "getAllUsers")
+	if resp.IsError() {
+		return entity, errors.New(resp.Status())
+	}
+	err := api.JSON.Unmarshal(resp.Body(), &entity)
+	if err != nil {
+		return entity, errors.New(resp.Status())
+	}
+	return entity, nil
 }

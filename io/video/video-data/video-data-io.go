@@ -20,6 +20,31 @@ func CreateVideoData(use domain.VideoData) (domain.VideoData, error) {
 	}
 	return entity, nil
 }
+func CreateVideoPictureData(use domain.VideoData) (domain.VideoData, error) {
+	entity := domain.VideoData{}
+	resp, _ := api.Rest().SetBody(use).Post(videoDataURL + "create-picture")
+	if resp.IsError() {
+		return entity, errors.New(resp.Status())
+	}
+	err := api.JSON.Unmarshal(resp.Body(), &entity)
+	if err != nil {
+		return entity, errors.New(resp.Status())
+	}
+	return entity, nil
+}
+func UpdateVideoPictureData(use domain.VideoData) (domain.VideoData, error) {
+	entity := domain.VideoData{}
+	resp, _ := api.Rest().SetBody(use).Post(videoDataURL + "update-picture")
+	if resp.IsError() {
+		return entity, errors.New(resp.Status())
+	}
+	err := api.JSON.Unmarshal(resp.Body(), &entity)
+	if err != nil {
+		return entity, errors.New(resp.Status())
+	}
+	return entity, nil
+}
+
 func UpdateVideoData(role domain.VideoData) (domain.VideoData, error) {
 	entity := domain.VideoData{}
 	resp, _ := api.Rest().SetBody(role).Post(videoDataURL + "update")

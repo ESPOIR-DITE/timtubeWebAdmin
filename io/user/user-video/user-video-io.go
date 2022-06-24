@@ -45,6 +45,18 @@ func ReadAllOfUserVideo(id string) ([]domain.UserVideo, error) {
 	}
 	return entity, nil
 }
+func ReadUserVideoWithVideoId(videoId string) (domain.UserVideo, error) {
+	entity := domain.UserVideo{}
+	resp, _ := api.Rest().Get(userVideoURL + "get-with-videoId/" + videoId)
+	if resp.IsError() {
+		return entity, errors.New(resp.Status())
+	}
+	err := api.JSON.Unmarshal(resp.Body(), &entity)
+	if err != nil {
+		return entity, errors.New(resp.Status())
+	}
+	return entity, nil
+}
 func ReadUserVideo(id string) (domain.UserVideo, error) {
 	entity := domain.UserVideo{}
 	resp, _ := api.Rest().Get(userVideoURL + "get/" + id)

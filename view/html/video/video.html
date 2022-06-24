@@ -23,7 +23,18 @@
 
     <!-- Custom styles for this page -->
     <link href="../../assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-
+<style>
+    .cropped2 {
+        width: 300px; /* width of container */
+        height: 300px; /* height of container */
+        object-fit: cover;
+        object-position: 20% 10%; /* try 20px 10px */
+        border: 0px solid black;
+    }
+    .cropped-image{
+        height: 300px; /* height of container */
+    }
+</style>
 </head>
 
 <body id="page-top">
@@ -60,20 +71,56 @@
                             <div class="card ">
                                 <div class="card-body">
                                     <h5 class="card-title">Video Detail</h5>
-                                    <p class="card-text">Name: <span>{{.Video.Title}}</span></p>
-                                    <p class="card-text">Surname: <span>{{.Video.Date}}</span></p>
-                                    <p class="card-text">BirthDate: <span>{{.Video.DateUploaded}}</span></p>
-                                    <p class="card-text">Role: <span>{{.Video.Description}}</span></p>
-                                    <button type="button" class="btn btn-primary" data-toggle="modal"  data-target="#videoModel">Manage</button>
+                                    <div class="row">
+                                        <div class="col text-left">
+                                            <p class="card-text">Video Title: </p>
+                                            <p class="card-text">Release Date: </p>
+                                            <p class="card-text">Upload Date: </p>
+                                            <p class="card-text">Video Size: </p>
+                                            <p class="card-text">Video price: </p>
+                                            <p class="card-text">Video Format: </p>
+                                        </div>
+                                        <div class="col">
+                                            <p class="card-text text-black-50">{{.Video.Title}}</p>
+                                            <p class="card-text">{{.Video.Date}}</p>
+                                            <p class="card-text">{{.Video.DateUploaded}}</p>
+                                            <p class="card-text">{{.VideoData.FileSize}}</p>
+                                            <p class="card-text">R {{.Video.Price}}</p>
+                                            <p class="card-text">{{.VideoData.FileType}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2">
+                                    <label class="text-center">Synopsis</label>
+                                    <textarea class="form-control">{{.Video.Description}}</textarea>
+                                    </div>
+                                    <div class="pt-2">
+                                    <button type="button" class="btn btn-primary pt-2" data-toggle="modal"  data-target="#videoModel">Manage</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="card ">
+                            <div class="card">
+
+                                <div class="card-header text-center container">
+
+                                    <img  class="img-fluid cropped2" src="data:image/png;base64,{{.Picture}}" />
+                                    <div class="card-img-overlay cropped-image text-center" >
+                                        <a  href="{{.Base}}video/video-data/stream/{{.Video.Id}}" target="_blank" >
+                                            <i href="" class=" fa fa-play-circle fa-4x " style="margin-top: 120px"></i>
+                                        </a>
+                                    </div>
+                                    <br/>
+                                </div>
                                 <div class="card-body">
-                                    <h5 class="card-title">User Categories</h5>
-                                    <img src="data:image/png;base64,{{.Picture}}" width="350px"/>
-                                    <a  href="{{.Base}}video/video-data/getRwa/{{.Video.Id}}/{{.Email}}" target="_blank" type="button" class="btn btn-primary"><i class="fa fa-play"></i> Watch</a>
+                                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal"  data-target="#updatevideo">Update Video</button>
+                                        {{if .Picture}}
+                                        <button type="button" class="btn btn-primary" data-toggle="modal"  data-target="#updatevideoPhoto">Update picture</button>
+                                        {{else}}
+                                        <button type="button" class="btn btn-primary" data-toggle="modal"  data-target="#createvideoPhoto">Create picture</button>
+                                        {{end}}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -83,17 +130,63 @@
                             <div class="card ">
                                 <div class="card-body">
                                     <h5 class="card-title">User Videos</h5>
-                                    <p class="card-text"></p>
-                                    <a href="#" class="btn btn-primary">Update</a>
+                                    <div class="row">
+                                        <div class="col text-left">
+                                            <p class="card-text">Name: </p>
+                                            <p class="card-text">Surname: </p>
+                                            <p class="card-text">Email: </p>
+                                            <p class="card-text">Role: </p>
+                                            <p class="card-text">Account status </p>
+                                        </div>
+                                        <div class="col">
+                                            <p class="card-text text-black-50">{{.User.Name}}</p>
+                                            <p class="card-text">{{.User.Surname}}</p>
+                                            <p class="card-text">{{.User.Email}}</p>
+                                            <p class="card-text">{{.Role}}</p>
+                                            <p class="card-text">{{.UserAccount.Status}}</p>
+                                        </div>
+                                    </div>
+                                    <a href="#" class="btn btn-primary">View</a>
                                 </div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="card ">
                                 <div class="card-body">
-                                    <h5 class="card-title">User Subscriptions</h5>
-                                    <p class="card-text"></p>
-                                    <a href="#" class="btn btn-primary">Update</a>
+                                    <h5 class="card-title">Subscriptions</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                            <thead>
+                                            <tr>
+                                                <th>UserId</th>
+                                                <th>Date</th>
+                                                <th>Subscription</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tfoot>
+                                            <tr>
+                                                <th>UserId</th>
+                                                <th>Date</th>
+                                                <th>Subscription</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                            </tfoot>
+                                            <tbody>
+
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td><a href="/video/video/video/" class="btn btn-info">View</a></td>
+                                            </tr>
+
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +209,6 @@
 
         </div>
         <!-- End of Content Wrapper -->
-
     </div>
     <!-- End of Page Wrapper -->
 
@@ -125,12 +217,104 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    <div class="modal fade" id="createvideoPhoto" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="card-title">Update Video picture</p>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="user" action="/video/video-data/create" method="post" enctype="multipart/form-data">
+                        <input type="text" name="videoId" value="{{.Video.Id}}"   hidden required>
+                        {{if .VideoData}}
+                        <input type="text" name="extension" value="{{.VideoData.FileType}}"   hidden required>
+                        <input type="text" name="size" value="{{.VideoData.FileSize}}"   hidden required>
+                        {{end}}
+                        <div class="form-group">
+                            <input type="file"  accept="image/jpeg" name="picture" maxlength="5000" class="form-control " id="exampleFirstName"
+                                   placeholder="First Name" required>
+                        </div>
+                        <button type="submit"  class="btn btn-primary  btn-block">
+                            Update
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updatevideoPhoto" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="card-title">Update Video picture</p>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="user" action="/video/video-data/update" method="post" enctype="multipart/form-data">
+                        <input type="text" name="videoId" value="{{.Video.Id}}"   hidden required>
+                        {{if .VideoData}}
+                        <input type="text" name="extension" value="{{.VideoData.FileType}}"   hidden required>
+                        <input type="text" name="size" value="{{.VideoData.FileSize}}"   hidden required>
+                        {{end}}
+                        <div class="form-group">
+                            <input type="file"  accept="image/jpeg" name="picture" maxlength="5000" class="form-control"
+                                   placeholder="First Name" required>
+                        </div>
+                        <button type="submit"  class="btn btn-primary  btn-block">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updatevideo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="card-title">Update Video</p>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="user" action="/video/video-data/video-update" method="post" enctype="multipart/form-data">
+                        <input type="text" name="videoId" value="{{.Video.Id}}"  required hidden >
+
+                        <div class="form-group">
+                            <input type="file"   name="picture"  class="form-control"
+                                   placeholder="First Name" required>
+                        </div>
+                        <button type="submit"  class="btn btn-primary  btn-block">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- User Modal-->
     <div class="modal fade" id="videoModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable" role="document">
             <div class="modal-content">
-
                 <div class="modal-body">
                     <div class="modal-header">
                         <form class="user" action="/video/video/update" method="post">
@@ -147,6 +331,7 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="userAccountModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable" role="document">
