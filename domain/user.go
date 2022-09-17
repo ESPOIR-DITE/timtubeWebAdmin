@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+type UserStack struct {
+	SuperAdmin int64
+	Admin      int64
+	Agent      int64
+}
+
 type User struct {
 	Email     string `json:"email"`
 	Name      string `json:"name"`
@@ -39,6 +45,7 @@ type UserAccount struct {
 	Password   string `json:"password"`
 	Date       string `json:"date"`
 	Status     bool   `json:"status"`
+	Token      string `json:"token"`
 }
 
 func (u UserAccount) Bind(r *http.Request) error {

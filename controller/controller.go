@@ -7,11 +7,16 @@ import (
 	"html/template"
 	"net/http"
 	"timtubeWebAdmin/config"
+	cmc "timtubeWebAdmin/controller/channel"
+	setting "timtubeWebAdmin/controller/setting"
 	"timtubeWebAdmin/controller/user"
 	"timtubeWebAdmin/controller/util"
 	video2 "timtubeWebAdmin/controller/video"
+	"timtubeWebAdmin/domain"
+	"timtubeWebAdmin/io"
 	user2 "timtubeWebAdmin/io/user/user"
 	user3 "timtubeWebAdmin/io/user/user-account"
+	user4 "timtubeWebAdmin/io/user/user-detail"
 )
 
 func Controllers(env *config.Env) http.Handler {
@@ -26,6 +31,8 @@ func Controllers(env *config.Env) http.Handler {
 	mux.Handle("/out", outHandler(env))
 	mux.Mount("/user", user.Home(env))
 	mux.Mount("/video", video2.Home(env))
+	mux.Mount("/channel", cmc.Home(env))
+	mux.Mount("/setting", setting.Home(env))
 
 	fileServer := http.FileServer(http.Dir("./view/assets/"))
 	// Use the mux.Handle() function to register the file server as the handler for
@@ -51,6 +58,7 @@ func homeHandler(app *config.Env) http.HandlerFunc {
 			return
 		}
 		var userRole string
+		var isExistString string
 
 		userAccount, err := user3.ReadUserAccountWithEmail(email)
 		if userAccount.Status == false {
@@ -84,32 +92,35 @@ func homeHandler(app *config.Env) http.HandlerFunc {
 			app.Session.Put(r.Context(), "role", userRole)
 			app.Session.Put(r.Context(), "userId", userAccount.CustomerId)
 		}
+		if userRole == "agent" {
+			isExist, err := user4.IsExistUserDetailEmail(email)
+			if err != nil {
+				fmt.Println(err, "error checkin userDetails")
+				isExistString = "error"
+			} else if isExist == true {
+				isExistString = "exist"
+			} else if isExist == false {
+				isExistString = "not exist"
+			}
+		}
 
+		DashBoard, err := io.GetDashboardData()
+		if err != nil {
+			fmt.Println(err)
+		}
 		type PageData struct {
-			Name     string
-			Surname  string
-			UserRole string
+			Name      string
+			Surname   string
+			Email     string
+			UserRole  string
+			Dashboard domain.Dashboard
+			IsExist   string
 		}
-		data := PageData{user.Name, user.Surname, userRole}
+		data := PageData{user.Name, user.Surname, email, userRole, DashBoard, isExistString}
 
-		var files = []string{}
-		filesAgent := []string{
-			app.Path + "index.html",
-			app.Path + "template/navigator.html",
-			app.Path + "template/topbar.html",
-		}
-		fileAdmins := []string{
-			app.Path + "index.html",
-			app.Path + "template/super-admin-navigator.html",
-			app.Path + "template/topbar.html",
-		}
-		if userRole == "superAdmin" {
-			files = fileAdmins
-		} else if userRole == "agent" {
-			files = filesAgent
-		}
+		mainFile := "index.html"
 
-		ts, err := template.ParseFiles(files...)
+		ts, err := template.ParseFiles(util.RolePageRender(app, userRole, mainFile)...)
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
 			return

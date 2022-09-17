@@ -66,10 +66,11 @@
                         {{.Message}}
                     </div>
                     {{end}}
+
                     <div class="row">
                         <div class="col">
-                            <div class="card ">
-                                <div class="card-body">
+                            <div class="card bg-primary">
+                                <div class="card-body text-white">
                                     <h5 class="card-title">Video Detail</h5>
                                     <div class="row">
                                         <div class="col text-left">
@@ -94,15 +95,14 @@
                                     <textarea class="form-control">{{.Video.Description}}</textarea>
                                     </div>
                                     <div class="pt-2">
-                                    <button type="button" class="btn btn-primary pt-2" data-toggle="modal"  data-target="#videoModel">Manage</button>
+                                    <button type="button" class="btn btn-primary pt-2 border-white" data-toggle="modal"  data-target="#videoModel">Manage</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="card">
-
-                                <div class="card-header text-center container">
+                            <div class="card bg-primary">
+                                <div class="card-header text-center container bg-primary">
 
                                     <img  class="img-fluid cropped2" src="data:image/png;base64,{{.Picture}}" />
                                     <div class="card-img-overlay cropped-image text-center" >
@@ -114,21 +114,22 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                                        <button type="button" class="btn btn-primary" data-toggle="modal"  data-target="#updatevideo">Update Video</button>
+                                        <button type="button" class="btn btn-primary border-white" data-toggle="modal"  data-target="#updatevideo">Update Video</button>
                                         {{if .Picture}}
-                                        <button type="button" class="btn btn-primary" data-toggle="modal"  data-target="#updatevideoPhoto">Update picture</button>
+                                        <button type="button" class="btn btn-primary border-white" data-toggle="modal"  data-target="#updatevideoPhoto">Update picture</button>
                                         {{else}}
-                                        <button type="button" class="btn btn-primary" data-toggle="modal"  data-target="#createvideoPhoto">Create picture</button>
+                                        <button type="button" class="btn btn-primary border-white" data-toggle="modal"  data-target="#createvideoPhoto">Create picture</button>
                                         {{end}}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="row my-2">
                         <div class="col">
-                            <div class="card ">
-                                <div class="card-body">
+                            <div class="card bg-primary">
+                                <div class="card-body text-white">
                                     <h5 class="card-title">User Videos</h5>
                                     <div class="row">
                                         <div class="col text-left">
@@ -146,34 +147,37 @@
                                             <p class="card-text">{{.UserAccount.Status}}</p>
                                         </div>
                                     </div>
-                                    <a href="#" class="btn btn-primary">View</a>
+                                    <a href="#" class="btn btn-primary border-white">View</a>
                                 </div>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="card ">
-                                <div class="card-body">
+                            <div class="card bg-primary">
+                                <div class="card-body text-white">
+                                    <h5 class="card-title">Channel</h5>
+                                   <a href="/channel/{{.Channel.Id}}"><i class="fa fa-broadcast-tower" style="color: orangered"> {{.Channel.Name}}</i></a>
+
+                                    {{if .Channel}}
+                                        <button type="button" class="btn btn-primary pt-2 border-white" data-toggle="modal"  data-target="#toChannel">Add to Channel</button>
+                                    {{else}}
+                                    <button type="button" class="btn btn-primary pt-2 border-white" data-toggle="modal"  data-target="#updateChannel">Update Channel</button>
+                                    {{end}}
+                                </div>
+                            </div>
+                            <div class="card bg-primary">
+                                <div class="card-body text-white">
                                     <h5 class="card-title">Subscriptions</h5>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <table class="table table-bordered text-white" id="dataTable" width="100%" cellspacing="0">
                                             <thead>
                                             <tr>
-                                                <th>UserId</th>
-                                                <th>Date</th>
+                                                <th>Liked</th>
+                                                <th>Unliked</th>
                                                 <th>Subscription</th>
                                                 <th>Status</th>
                                                 <th>Action</th>
                                             </tr>
                                             </thead>
-                                            <tfoot>
-                                            <tr>
-                                                <th>UserId</th>
-                                                <th>Date</th>
-                                                <th>Subscription</th>
-                                                <th>Status</th>
-                                                <th>Action</th>
-                                            </tr>
-                                            </tfoot>
                                             <tbody>
 
                                             <tr>
@@ -181,7 +185,7 @@
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
-                                                <td><a href="/video/video/video/" class="btn btn-info">View</a></td>
+                                                <td></td>
                                             </tr>
 
                                             </tbody>
@@ -297,6 +301,96 @@
                         <div class="form-group">
                             <input type="file"   name="picture"  class="form-control"
                                    placeholder="First Name" required>
+                        </div>
+                        <button type="submit"  class="btn btn-primary  btn-block">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="toChannel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="card-title">Add to channel</p>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="user" action="/video/video/channel-video" method="post" >
+                        <input type="text" name="videoId" value="{{.Video.Id}}"  required hidden >
+
+                        <div class="form-group">
+                            <label> Channel</label>
+                            <select name="channelId" class="browser-default custom-select ">
+                                {{if .Channel}}
+                                <option selected disabled>{{.Channel.Name}}</option>
+                                {{else}}
+                                <option selected disabled>Open this select menu</option>
+                                {{end}}
+                                {{with .Channels}}
+                                {{range .}}
+                                <option value={{.Id}}>{{.Name}}</option>
+                                {{end}}
+                                {{end}}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea type="file"   name="description"  class="form-control"
+                                      placeholder="First Name" required></textarea>
+                        </div>
+                        <button type="submit"  class="btn btn-primary  btn-block">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateChannel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="card-title">Update to channel</p>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="user" action="/video/video/channel-video" method="post" >
+                        <input type="text" name="videoId" value="{{.Video.Id}}"  required hidden >
+                        <input type="text" name="channelVideo" value="{{.Channel.Id}}"  required hidden >
+                        <div class="form-group">
+                            <label> Channel</label>
+                            <select name="channelId" class="browser-default custom-select ">
+                                {{if .Channel}}
+                                <option selected disabled>{{.Channel.Name}}</option>
+                                {{else}}
+                                <option selected disabled>Open this select menu</option>
+                                {{end}}
+                                {{with .Channels}}
+                                {{range .}}
+                                <option value={{.Id}}>{{.Name}}</option>
+                                {{end}}
+                                {{end}}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea type="file"   name="description"  class="form-control"
+                                      placeholder="First Name" required></textarea>
                         </div>
                         <button type="submit"  class="btn btn-primary  btn-block">
                             Submit

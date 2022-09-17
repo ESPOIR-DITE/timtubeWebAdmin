@@ -10,6 +10,11 @@ type Video struct {
 	Price        float64 `json:"price"`
 	URL          string  `json:"url"`
 }
+type VideoThriller struct {
+	Id          string `json:"id"`
+	VideoId     string `json:"video_id"`
+	Description string `json:"description"`
+}
 type VideoData struct {
 	Id       string `json:"id" gorm:"primaryKey"`
 	Picture  []byte `json:"picture"`

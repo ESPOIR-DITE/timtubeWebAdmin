@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"time"
 	"timtubeWebAdmin/config"
+	"timtubeWebAdmin/domain"
 	user "timtubeWebAdmin/io/user/role"
 )
 
-const YYYMMDD = "2006-02-01"
+const YYYMMDD = "2006-01-02"
 const YYYYMMDDHHMMSS = "2006-01-02 15:04 05"
 
 var BirthDate = time.Date(1990, time.November, 10, 23, 0, 0, 0, time.UTC)
@@ -63,11 +64,62 @@ func CreateSession(key, value string, app *config.Env, r *http.Request) {
 func IsAdmin(email string) bool {
 	return true
 }
-
+func GetCurrentDate() string {
+	now := time.Now()
+	return now.Format(YYYMMDD)
+}
 func GetDateTime(date string) time.Time {
 	result, err := time.Parse(YYYMMDD, date)
 	if err != nil {
 		return time.Time{}
 	}
 	return result
+}
+func GetStringDateTime(date string) string {
+	result, err := time.Parse(YYYMMDD, date)
+	if err != nil {
+		return time.Now().Format(YYYMMDD)
+	}
+	return result.Format(YYYMMDD)
+}
+func RolePageRender(app *config.Env, userRole string, pages string) []string {
+	var filesAgent []string
+	switch userRole {
+	case "superAdmin":
+		filesAgent = []string{
+			app.Path + pages,
+			app.Path + "template/super-admin-navigator.html",
+			app.Path + "template/topbar.html",
+		}
+		break
+	case "admin":
+		filesAgent = []string{
+			app.Path + pages,
+			app.Path + "template/super-admin-navigator.html",
+			app.Path + "template/topbar.html",
+		}
+		break
+	case "user":
+		filesAgent = []string{
+			app.Path + pages,
+			app.Path + "template/navigator.html",
+			app.Path + "template/topbar.html",
+		}
+		break
+	case "agent":
+		filesAgent = []string{
+			app.Path + pages,
+			app.Path + "template/admin-navigator.html",
+			app.Path + "template/topbar.html",
+		}
+		break
+	}
+	return filesAgent
+}
+
+type ChannelsVideosOwners struct {
+	Channel     domain.Channel
+	ChannelType domain.ChannelType
+	User        domain.User
+	Videos      domain.Video
 }

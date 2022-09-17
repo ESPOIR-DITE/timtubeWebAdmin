@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<base href="/">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SB Admin 2 - Dashboard</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="../assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+            href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+            rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../../assets/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this page -->
+    <link href="../../assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+<style>
+    .cropped2 {
+        width: 300px; /* width of container */
+        height: 300px; /* height of container */
+        object-fit: cover;
+        object-position: 20% 10%; /* try 20px 10px */
+        border: 0px solid black;
+    }
+    .cropped-image{
+        height: 300px; /* height of container */
+    }
+</style>
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {{template "navigator" .}}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {{template "topbar" .}}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <h1 class="h3 mb-4 text-gray-800">{{.Channels.Name}}</h1>
+                    {{if .Message}}
+                    <div class="alert alert-warning" role="alert">
+                        {{.Message}}
+                    </div>
+                    {{end}}
+                    <div class="row">
+                        <div class="col">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Channel Detail</h5>
+                                    <div class="row">
+                                        <div class="col text-left">
+                                            <p class="card-text">Channel Name: </p>
+                                            <p class="card-text">Channel Type: </p>
+                                            <p class="card-text">Channel User: </p>
+                                            <p class="card-text">Channel Region: </p>
+                                            <p class="card-text">Channel Date: </p>
+                                        </div>
+                                        <div class="col">
+                                            <p class="card-text text-black-50">{{.Channels.Name}}</p>
+                                            <p class="card-text">{{.ChannelType.Name}}</p>
+                                            <p class="card-text">{{.Channels.UserId}}</p>
+                                            <p class="card-text">{{.Channels.Region}}</p>
+                                            <p class="card-text">{{.Channels.Date}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2">
+                                    <label class="text-center">Description</label>
+                                    <textarea class="form-control" disabled>{{.Channels.Description}}</textarea>
+                                    </div>
+                                    <div class="pt-2">
+                                        <div class="card-footer  bg-primary">
+                                            <button type="button" class="btn btn-primary pt-2 border-white" data-toggle="modal"  data-target="#videoModel">Manage</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card  bg-primary">
+
+                                <div class="card-header text-center container  bg-primary">
+
+                                    <img  class="img-fluid cropped2" src="data:image/png;base64,{{.Image}}" />
+
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                                        {{if .Image}}
+                                        <button type="button" class="btn btn-primary border-white" data-toggle="modal"  data-target="#updatevideoPhoto">Update picture</button>
+                                        {{else}}
+                                        <button type="button" class="btn btn-primary border-white" data-toggle="modal"  data-target="#createvideoPhoto">Create picture</button>
+                                        {{end}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row my-2">
+                        <div class="col">
+                            <div class="card bg-primary">
+                                <div class="card-body text-white">
+                                    <h5 class="card-title">Owner Of Channel</h5>
+                                    <div class="row">
+                                        <div class="col text-left">
+                                            <p class="card-text">Name: </p>
+                                            <p class="card-text">Surname: </p>
+                                            <p class="card-text">Email: </p>
+                                            <p class="card-text">Role: </p>
+                                        </div>
+                                        <div class="col">
+                                            <p class="card-text text-black-50">{{.User.Name}}</p>
+                                            <p class="card-text">{{.User.Surname}}</p>
+                                            <p class="card-text">{{.User.Email}}</p>
+                                            <p class="card-text">{{.Role.Name}}</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <button href="/user/user/user/{{.User.Email}}" class="btn btn-primary border-white"><i class="fa fa-eye"></i> View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card bg-primary">
+                                <div class="card-title  text-white text-xl-center">Subscription</div>
+                                <div class="card-body">
+                                    <h1 class="text-white text-center">{{.SubscriptionAmount}} <small>Subscribers</small></h1>
+                                </div>
+                                <div class="card-footer  bg-primary">
+                                    <a href="/channel/subscription/{{.Channels.Id}}" class="btn btn-primary border-white"><i class="fa fa-eye "></i> View All</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Your Website 2020</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="../../assets/vendor/jquery/jquery.min.js"></script>
+    <script src="../../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="../../assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="../../assets/js/sb-admin-2.min.js"></script>
+
+</body>
+<script>
+
+</script>
+
+</html>

@@ -10,8 +10,11 @@ import (
 	"timtubeWebAdmin/config"
 	"timtubeWebAdmin/controller/util"
 	"timtubeWebAdmin/domain"
+	user_details "timtubeWebAdmin/domain/user/user-details"
 	user2 "timtubeWebAdmin/io/user/user"
 	"timtubeWebAdmin/io/user/user-account"
+	user3 "timtubeWebAdmin/io/user/user-bank"
+	user4 "timtubeWebAdmin/io/user/user-detail"
 )
 
 func Home(app *config.Env) http.Handler {
@@ -22,8 +25,49 @@ func Home(app *config.Env) http.Handler {
 	r.Get("/register", registerHandler(app))
 	r.Post("/register", registerPostHandler(app))
 	r.Post("/update", updateUserAccount(app))
+	r.Post("/user-details", createUserDetails(app))
 
 	return r
+}
+
+func createUserDetails(app *config.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		crNumber := r.PostFormValue("crNumber")
+		Tnumber := r.PostFormValue("Tnumber")
+		bankType := r.PostFormValue("bankType")
+		bankName := r.PostFormValue("bankName")
+		email := r.PostFormValue("email")
+		accountNumber := r.PostFormValue("accountNumber")
+		branchCode := r.PostFormValue("branchCode")
+		ccv := r.PostFormValue("ccv")
+
+		if crNumber != "" && Tnumber != "" && bankType != "" && bankName != "" && accountNumber != "" && ccv != "" && branchCode != "" {
+			userBankObject := user_details.UserBank{"", email, bankType, bankName, branchCode, accountNumber, ccv}
+			userBank, err := user3.CreateUserBank(userBankObject)
+			if err != nil {
+				util.CreateSession("message", "Error occurred, try again.", app, r)
+				fmt.Println(err, "error creating UserBank")
+			} else if userBank.Id != "" {
+				userDetails := user_details.UserDetails{"", email, userBank.Id, crNumber, Tnumber}
+				_, err := user4.CreateUserDetails(userDetails)
+				if err != nil {
+					util.CreateSession("message", "Error occurred, try again.", app, r)
+					_, err = user3.DeleteUserBankById(userBank.Id)
+					if err != nil {
+						fmt.Println(err, " error deleting User bank!")
+					}
+				}
+			}
+			util.CreateSession("message", "Successfully create your Bank details", app, r)
+
+		} else {
+			util.CreateSession("message", "Error occurred, try again.", app, r)
+		}
+
+		http.Redirect(w, r, "/", 301)
+		return
+	}
 }
 
 func updateUserAccount(app *config.Env) http.HandlerFunc {
@@ -41,7 +85,7 @@ func updateUserAccount(app *config.Env) http.HandlerFunc {
 			//	http.Redirect(w, r, "/user/user/", 301)
 			//	return
 			//}
-			userAccount := domain.UserAccount{customerId, email, password, date, status}
+			userAccount := domain.UserAccount{customerId, email, password, date, status, ""}
 			fmt.Println("userAccount: ", userAccount)
 			_, err := user.UpdateUserAccount(userAccount)
 			if err != nil {
@@ -93,7 +137,7 @@ func registerPostHandler(app *config.Env) http.HandlerFunc {
 				http.Redirect(w, r, "/user/account/register", 301)
 				return
 			}
-			userAccount := domain.UserAccount{"", email, password, util.YYYMMDD, false}
+			userAccount := domain.UserAccount{"", email, password, util.YYYMMDD, false, ""}
 			_, err = user.CreateUserAccount(userAccount)
 			if err != nil {
 				user2.DeleteUser(email)
@@ -118,7 +162,7 @@ func loginPostHandler(app *config.Env) http.HandlerFunc {
 		//fmt.Println(email)
 		//fmt.Println(password)
 		if email != "" && password != "" {
-			loginDetail := domain.UserAccount{"", email, password, "", false}
+			loginDetail := domain.UserAccount{"", email, password, "", false, ""}
 			userAccount, err := user.LoginUserAccount(loginDetail)
 			if err != nil {
 				fmt.Println(err, " error login user")
@@ -128,6 +172,7 @@ func loginPostHandler(app *config.Env) http.HandlerFunc {
 			}
 			util.CreateSession("email", email, app, r)
 			util.CreateSession("userId", userAccount.CustomerId, app, r)
+			util.CreateSession("token", userAccount.Token, app, r)
 			http.Redirect(w, r, "/", 301)
 			return
 		} else {

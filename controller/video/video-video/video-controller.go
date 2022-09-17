@@ -14,6 +14,8 @@ import (
 	"timtubeWebAdmin/config"
 	"timtubeWebAdmin/controller/util"
 	"timtubeWebAdmin/domain"
+	user5 "timtubeWebAdmin/io/channel/channel"
+	channel_video "timtubeWebAdmin/io/channel/channel-video"
 	"timtubeWebAdmin/io/pcloud"
 	user2 "timtubeWebAdmin/io/user/user"
 	user4 "timtubeWebAdmin/io/user/user-account"
@@ -28,8 +30,32 @@ func Home(app *config.Env) http.Handler {
 	r.Get("/video/{id}", viewVideo(app))
 	r.Post("/update", updateVideoDetails(app))
 	r.Post("/create", createVideo(app))
+	r.Post("/channel-video", createChannelVideoHandler(app))
 
 	return r
+}
+func createChannelVideoHandler(app *config.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		//Id          :=r.PostFormValue("channelId")
+		channelId := r.PostFormValue("channelId")
+		videoId := r.PostFormValue("videoId")
+		description := r.PostFormValue("description")
+
+		if channelId != "" && videoId != "" {
+			channelVideoObject := domain.ChannelVideos{"", videoId, channelId, description}
+			_, err := channel_video.CreateChannelVideo(channelVideoObject)
+			if err != nil {
+				fmt.Println(err, "error creating channel video")
+			}
+			app.Session.Put(r.Context(), "message", "You have created a new channel video")
+			http.Redirect(w, r, "/video/video/video/"+videoId, 301)
+			return
+		}
+		app.Session.Put(r.Context(), "message", "Could not create, data missing!")
+		http.Redirect(w, r, "/video/video", 301)
+		return
+	}
 }
 func checkOnAndOff(isPrivate string) bool {
 	if isPrivate == "on" {
@@ -61,43 +87,46 @@ func createVideo(app *config.Env) http.HandlerFunc {
 		}
 
 		now := time.Now()
-		videoObject := domain.Video{"", title, date, now.Format(util.YYYYMMDDHHMMSS), description, isPrivate, price, ""}
-		videoResult, err := user3.CreateVideo(videoObject)
-		if err != nil {
-			fmt.Println(err)
-			http.Redirect(w, r, "/video/video/", 301)
-			return
-		}
+		videoObject := domain.Video{"", title, util.GetStringDateTime(date), now.Format(util.YYYMMDD), description, isPrivate, price, ""}
+
 		fileBytes, err := ioutil.ReadAll(file)
 		if err != nil {
 			fmt.Println(err)
 		}
 		fileExtension := strings.Split(handler.Filename, ".")
 		extension := fileExtension[1]
-		//fileSize := strconv.Itoa(handler.Size)
-		videoData := domain.VideoData{videoResult.Id, []byte{}, fileBytes, extension, "10"}
 
-		go sendVideo(videoData)
+		go sendVideo(fileBytes, extension, email, videoObject, w, r, app)
 
-		user, err := user4.ReadUserAccountWithEmail(email)
-		if err != nil {
-			fmt.Println(err, " error reading user")
-		}
-		userVideoObject := domain.UserVideo{"", user.CustomerId, videoResult.Id, now.Format(util.YYYMMDD)}
-		_, err = userVideo.CreateUserVideo(userVideoObject)
-		if err != nil {
-			fmt.Println(err, " error creating user-video")
-		}
 		http.Redirect(w, r, "/video/video", 301)
 		return
 	}
 }
-func sendVideo(video domain.VideoData) {
-	_, err := user.CreateVideoData(video)
+func sendVideo(fileBytes []byte, extension string, email string, videoObject domain.Video, w http.ResponseWriter, r *http.Request, app *config.Env) {
+	videoResult, err := user3.CreateVideo(videoObject)
 	if err != nil {
-		fmt.Println("error creating video")
+		fmt.Println(err, "error creating video")
+		util.CreateSession("message", "Error creating Video Please try again later", app, r)
+		http.Redirect(w, r, "/video/video/", 301)
+		return
+	}
+	videoData := domain.VideoData{videoResult.Id, []byte{}, fileBytes, extension, "10"}
+	_, err = user.CreateVideoData(videoData)
+	if err != nil {
+		fmt.Println("error creating videoData")
 		fmt.Println(err)
 	}
+	user, err := user4.ReadUserAccountWithEmail(email)
+	if err != nil {
+		fmt.Println(err, " error reading user")
+	}
+	now := time.Now()
+	userVideoObject := domain.UserVideo{"", user.CustomerId, videoResult.Id, now.Format(util.YYYMMDD)}
+	_, err = userVideo.CreateUserVideo(userVideoObject)
+	if err != nil {
+		fmt.Println(err, " error creating user-video")
+	}
+	util.CreateSession("message", "Successfully created an new video", app, r)
 }
 
 func updateVideoDetails(app *config.Env) http.HandlerFunc {
@@ -147,7 +176,7 @@ func fileWriter(file multipart.File, extension string) {
 
 }
 
-//TODO we need to cupture the size of the video and format...
+// TODO we need to cupture the size of the video and format...
 func viewVideo(app *config.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
@@ -192,6 +221,14 @@ func viewVideo(app *config.Env) http.HandlerFunc {
 				}
 			}
 		}
+		myChannels, err := user5.ReadChannelByUserId(email)
+		if err != nil {
+			fmt.Println(err, " error reading my Channels data")
+		}
+		channelName, err := getChannelName(id)
+		if err != nil {
+			fmt.Println(err, " error reading video Channel ")
+		}
 
 		sEnc := base64.StdEncoding.EncodeToString(videoData.Picture)
 
@@ -209,26 +246,16 @@ func viewVideo(app *config.Env) http.HandlerFunc {
 			UserVideo   domain.UserVideo
 			UserAccount domain.UserAccount
 			User        domain.User
+			Channels    []domain.Channel
+			Channel     domain.Channel
 			Role        string
 		}
-		data := PageData{name, surname, videoToview, message, sEnc, email, base, videoData, userVideoObject, videoOwnerAccount, videoOwner, role}
-		var files = []string{}
-		filesAgent := []string{
-			app.Path + "video/video.html",
-			app.Path + "template/navigator.html",
-			app.Path + "template/topbar.html",
-		}
-		fileAdmins := []string{
-			app.Path + "video/video.html",
-			app.Path + "template/super-admin-navigator.html",
-			app.Path + "template/topbar.html",
-		}
-		if userRole == "superAdmin" {
-			files = fileAdmins
-		} else if userRole == "agent" {
-			files = filesAgent
-		}
-		ts, err := template.ParseFiles(files...)
+		data := PageData{name, surname, videoToview,
+			message, sEnc, email, base, videoData,
+			userVideoObject, videoOwnerAccount, videoOwner,
+			myChannels, channelName, role}
+
+		ts, err := template.ParseFiles(util.RolePageRender(app, userRole, "video/video.html")...)
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
 			return
@@ -240,6 +267,20 @@ func viewVideo(app *config.Env) http.HandlerFunc {
 	}
 }
 
+func getChannelName(videoId string) (domain.Channel, error) {
+	var channelName domain.Channel
+	videoChannel, err := channel_video.ReadChannelVideoByVideoId(videoId)
+	if err != nil {
+		fmt.Println(err, " error reading my Channels data")
+		return channelName, err
+	}
+	channelObject, err := user5.ReadChannel(videoChannel.ChannelId)
+	if err != nil {
+		fmt.Println(err, " error reading my Channels data")
+		return channelName, err
+	}
+	return channelObject, nil
+}
 func viewVideos(app *config.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var videos = []domain.Video{}
@@ -275,25 +316,11 @@ func viewVideos(app *config.Env) http.HandlerFunc {
 			Name    string
 			Surname string
 			Message string
+			Email   string
 		}
-		data := PageData{videos, name, surname, message}
-		var files = []string{}
-		filesAgent := []string{
-			app.Path + "video/videos.html",
-			app.Path + "template/navigator.html",
-			app.Path + "template/topbar.html",
-		}
-		fileAdmins := []string{
-			app.Path + "video/videos.html",
-			app.Path + "template/super-admin-navigator.html",
-			app.Path + "template/topbar.html",
-		}
-		if userRole == "superAdmin" {
-			files = fileAdmins
-		} else if userRole == "agent" {
-			files = filesAgent
-		}
-		ts, err := template.ParseFiles(files...)
+		data := PageData{videos, name, surname, message, email}
+
+		ts, err := template.ParseFiles(util.RolePageRender(app, userRole, "video/videos.html")...)
 		if err != nil {
 			app.ErrorLog.Println(err.Error())
 			return
