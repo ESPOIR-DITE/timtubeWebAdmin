@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"timtubeWebAdmin/api"
 	"timtubeWebAdmin/config"
 	"timtubeWebAdmin/controller/util"
 	"timtubeWebAdmin/domain"
@@ -173,6 +174,7 @@ func loginPostHandler(app *config.Env) http.HandlerFunc {
 			util.CreateSession("email", email, app, r)
 			util.CreateSession("userId", userAccount.CustomerId, app, r)
 			util.CreateSession("token", userAccount.Token, app, r)
+			api.TOKEN = userAccount.Token
 			http.Redirect(w, r, "/", 301)
 			return
 		} else {
